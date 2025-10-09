@@ -1,9 +1,14 @@
 #!/usr/bin/expect
 
-proc test {seed n sid} {
+proc starttest {seed n sid} {
     global spawn_id
     set spawn_id $sid
     send "test $seed $n\r"
+}
+
+proc reaptest {seed sid} {
+    global spawn_id
+    set spawn_id $sid
     expect -re {test.*\n([0-9]+) ([0-9a-f]+)\r}
     set s $expect_out(1,string)
     set h $expect_out(2,string)
@@ -12,6 +17,11 @@ proc test {seed n sid} {
 	exit
     }
     return $h
+}
+
+proc test {seed n sid} {
+    starttest $seed $n $sid
+    return [reaptest $seed $sid]
 }
 
 proc testri {seed n sid regs {insns {}}} {
@@ -219,8 +229,10 @@ log_user 0
 set ok true
 for {set seed $seed_min} {$seed < $seed_min + $count} {incr seed} {
     puts "seed=$seed"
-    set h1 [test $seed $insns $sr1]
-    set h2 [test $seed $insns $sr2]
+    starttest $seed $insns $sr1
+    starttest $seed $insns $sr2
+    set h1 [reaptest $seed $sr1]
+    set h2 [reaptest $seed $sr2]
     if {$h1 ne $h2} {
 	set ok false
 	break
