@@ -29,6 +29,7 @@
 	.long 0x2402004c; /* hrfid				*/ \
 191:
 
+	.machine "power10"
 
 /* Load an immediate 64-bit value into a register */
 #define LOAD_IMM64(r, e)			\
@@ -48,13 +49,35 @@ _start:
 
 .global boot_entry
 boot_entry:
+	/* disable interrupts and FE0/1 */
+	mfmsr	%r0
+	li	%r3,0
+	ori	%r3,%r3,0x8900
+	andc	%r0,%r0,%r3
+	mtmsrd	%r0
+
+	LOAD_IMM64(%r10, __bss_start)
+	LOAD_IMM64(%r11, __bss_end)
+
+	/* see if we are loaded at 0, if not copy ourselves to 0 */
+	lnia	%r3
+	addi	%r3,%r3,_start-.
+	cmpdi	%r3,0
+	beq	2f
+	/* XXX we assume the copy doesn't overlap... */
+	li	%r4,0
+	addi	%r0,%r10,7
+	srdi	%r0,%r0,3
+	mtctr	%r0
+3:	ldx	%r0,%r4,%r3
+	std	%r0,0(%r4)
+	addi	%r4,%r4,8
+	bdnz	3b
+2:
 	/* setup stack */
 	LOAD_IMM64(%r1, STACK_TOP - 0x100)
 
 	/* clear BSS */
-	LOAD_IMM64(%r10, __bss_start)
-	LOAD_IMM64(%r11, __bss_end)
-
 	subf	%r11,%r10,%r11
 	mtctr	%r11
 

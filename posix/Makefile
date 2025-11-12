@@ -11,7 +11,7 @@ endif
 CDEFS=
 
 # Uncomment the next line to include vector/VSX instructions
-#CDEFS += -DVECTOR_INSNS=true
+CDEFS += -DVECTOR_INSNS=true
 
 CC = $(CROSS_COMPILE)gcc
 LD = $(CROSS_COMPILE)ld

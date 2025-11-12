@@ -1,7 +1,7 @@
 ARCH = $(shell uname -m)
 ifneq ("$(ARCH)", "ppc64")
 ifneq ("$(ARCH)", "ppc64le")
-	CROSS_COMPILE ?= powerpc64le-linux-
+	CROSS_COMPILE ?= powerpc64le-linux-gnu-
 	COPTS ?= -mno-vsx -mno-altivec
 endif
 endif
@@ -11,7 +11,7 @@ MICROWATT = ../..
 CDEFS=
 
 # Uncomment the next line to include vector/VSX instructions
-#CDEFS += -DVECTOR_INSNS=true
+CDEFS += -DVECTOR_INSNS=true
 
 CC = $(CROSS_COMPILE)gcc
 LD = $(CROSS_COMPILE)ld
